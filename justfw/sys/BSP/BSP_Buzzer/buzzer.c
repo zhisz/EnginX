@@ -165,4 +165,5 @@ void Bsp_Buzzer_Init() {
 #ifdef BUZZER_USE_CLI
     FreeRTOS_CLIRegisterCommand(&xBuzzerCLI);
 #endif
+
 }

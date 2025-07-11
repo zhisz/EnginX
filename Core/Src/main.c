@@ -36,6 +36,7 @@
 /* USER CODE BEGIN Includes */
 #include "modules.h"
 #include "sys.h"
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -133,7 +134,9 @@ int main(void)
   Sys_Init();
   Modules_Init();
   vTaskDelay(pdMS_TO_TICKS(2000));
-  vBusPublish("/buzzer", (void*)"BAD_APPLE");
+
+  vBusPublishFromName("/buzzer", (void*)"BAD_APPLE");
+
   /* USER CODE END 2 */
 
   /* Init scheduler */

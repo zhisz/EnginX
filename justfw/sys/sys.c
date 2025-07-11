@@ -23,6 +23,7 @@ void Sys_Init() {
     BSP_CAN_Init();
     Bsp_Buzzer_Init();
 
+
 #ifdef USE_BMI088
     BSP_bmi088_Init();
 #endif
