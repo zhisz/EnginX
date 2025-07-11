@@ -1,7 +1,7 @@
 #此文件从模板自动生成! 请勿更改!
 set(CMAKE_SYSTEM_NAME Generic)
 set(CMAKE_SYSTEM_VERSION 1)
-cmake_minimum_required(VERSION 3.30)
+cmake_minimum_required(VERSION 3.28)
 
 # specify cross-compilers and tools
 set(CMAKE_C_COMPILER arm-none-eabi-gcc)
@@ -14,7 +14,7 @@ set(SIZE arm-none-eabi-size)
 set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
 
 # project settings
-project(JUSTFW C CXX ASM)
+project(JUSTOS C CXX ASM)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_C_STANDARD 11)
 
@@ -93,6 +93,8 @@ include_directories(${INCLUDES} "User")
 file(GLOB_RECURSE HEADER_FILES
         "justfw/**/*.h"
         "Middlewares/**/*.h"
+        "User/**/*.h"
+        "User/*.h"
 )
 foreach(header ${HEADER_FILES})
     get_filename_component(header_dir ${header} DIRECTORY)
@@ -101,9 +103,9 @@ endforeach()
 list(REMOVE_DUPLICATES INCLUDE_DIRS)
 include_directories(${INCLUDE_DIRS})
 
-file(GLOB_RECURSE JUSTFW "justfw/**/*.*" "User/**/*.*")
+file(GLOB_RECURSE JUSTFW "justfw/**/*.*" "User/**/*.*" "User/*.*")#"User/**/*.*" "User/*.*"
 
-include_directories(justfw/interface)
+#include_directories(justfw/interface)
 
 add_executable(${PROJECT_NAME}.elf ${SOURCES} ${LINKER_SCRIPT} ${JUSTFW})
 
