@@ -299,3 +299,20 @@ void DM_Motor_Init() {
     vListInitialise(&motors);
     xTaskCreate(motor_mainloop, "DM_Motor", 256, NULL, 124, NULL);
 }
+
+void DM_Motor_DeInit()
+{
+    DM_Motor_Init();
+    DM_Motor_ConfigTypeDef config = {
+        .motor_id = 6,
+        .can_rx_topic_name = "/CAN1/RX",
+        .can_tx_topic_name = "/CAN1/TX",
+        .motor_mode = MOTOR_MODE_SPEED,
+        .direction = 1,
+        .kp = 0.2,
+        .kd = 0.2,
+        .motor_ptr_name = "test_motor2"
+    };
+
+    // DM_Motor_Register(&config);
+}

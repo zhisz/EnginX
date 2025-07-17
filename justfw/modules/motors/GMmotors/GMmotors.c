@@ -1,4 +1,5 @@
 #include "GMmotors.h"
+#include "subarms.h"
 GM_BufferTypeDef GM_Buffer[GM_BUFFER_NUM] = {0};
 
 void GM_ControlSend() {
@@ -44,6 +45,12 @@ void GM_Init() {
     GM_Buffer[0].can_tx_topic = xBusTopicRegister("/CAN1/TX");
     GM_Buffer[1].can_tx_topic = xBusTopicRegister("/CAN2/TX");
 
+    extern void C620_Init();
+    C620_Init();
+
+
+    extern void C610_Init();
+    C610_Init();
     // 注册接收话题，仅用于比较话题地址，不发布消息
     GM_Buffer[0].can_rx_topic = xBusTopicRegister("/CAN1/RX");
     GM_Buffer[1].can_rx_topic = xBusTopicRegister("/CAN2/RX");

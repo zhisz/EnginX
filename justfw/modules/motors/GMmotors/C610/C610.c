@@ -297,3 +297,47 @@ INTF_Motor_HandleTypeDef *C610_Register(C610_ConfigTypeDef *config) {
 
     return motor;
 }
+void C610_Init() {
+    PID_Init_Config_s angle_pid = {
+        .Kp = 60.0f,
+        .Ki = 20.0f,
+        .Kd = 1.50f,
+        .CoefA = 0.5f,
+        .CoefB = 0.5f,
+        .MaxOut = 10000.0f,
+        .IntegralLimit = 5000.0f,
+        .DeadBand = 0.0f,
+        .Improve = PID_Integral_Limit | PID_ChangingIntegrationRate | PID_OutputFilter,
+    };
+    PID_Init_Config_s speed_pid = {
+        .Kp = 0.01f,
+        .Ki = 0.0f,
+        .Kd = 0.00f,
+        .MaxOut = 12.0f,
+        .DeadBand = 0.0f,
+        .IntegralLimit = 6.0f,
+        .Improve = PID_Integral_Limit| PID_OutputFilter,
+    };
+    PID_Init_Config_s torque_pid = {
+        .Kp = 1000.0f,
+        .Ki = 5000.0f,
+        .Kd = 0.0f,
+        .MaxOut = C610_CURRENT_MAX,
+        .DeadBand = 0.0f,
+        .Improve = PID_Integral_Limit,
+        .IntegralLimit = 100.0f,
+    };
+    C610_ConfigTypeDef config = {
+        .motor_id = 6,
+        .motor_ptr_name = "spin",
+        .motor_mode = MOTOR_MODE_ANGLE,
+        .direction = -1.0f,
+        .torque_feed_forward = C610_Torque2Current(1.0f), // 未测试
+        .angle_pid_config = &angle_pid,
+        .speed_pid_config = &speed_pid,
+        .torque_pid_config = &torque_pid,
+        .can_rx_topic_name = "/CAN1/RX",
+        .can_tx_topic_name = "/CAN1/TX",
+    };
+    //C610_Register(&config);
+}

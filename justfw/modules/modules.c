@@ -1,7 +1,10 @@
 #include "modules.h"
+
+#include "chassis.h"
 #include "test.h"
 #include "main.h"
 #include "modules_config.h"
+#include "subarms.h"
 
 
 void Modules_Init() {
@@ -35,11 +38,19 @@ void Modules_Init() {
 
     MotorManager_Init();
 
-    DR16_Init();
-    extern void Odrive_DeInit();
-    Odrive_DeInit();
+    extern void GM_Init();
+    GM_Init();
 
-    Test_Init();
+    DR16_Init();
+
+
+    // extern void DM_Motor_DeInit();
+    // DM_Motor_DeInit();
+
+    subarms_Init();
+    chassis_Init();
+
+    // Test_Init();
 
     __enable_irq();
 }

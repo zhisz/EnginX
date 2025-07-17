@@ -171,44 +171,44 @@ static void odrive_mainLoop() {
             INTF_Motor_HandleTypeDef *m = listGET_LIST_ITEM_OWNER(item);
             Odrive_CAN_ResDataTypedef *priv = m->private_data;
 
-            // if (priv->error != false) {
-            //     // 出现异常
-            //     motor_disable(m);
-            //     m->motor_state = MOTOR_STATE_ERROR;
-            //     vTaskDelay(pdMS_TO_TICKS(10));
-            //     motor_clear_err(m);
-            // }
+            if (priv->error != false) {
+                // 出现异常
+                motor_disable(m);
+                m->motor_state = MOTOR_STATE_ERROR;
+                vTaskDelay(pdMS_TO_TICKS(10));
+                motor_clear_err(m);
+            }
 
-            // if (m->motor_state == MOTOR_STATE_INIT) {
-            //     motor_clear_err(m);
-            //     vTaskDelay(pdMS_TO_TICKS(10));
-            //     motor_enable(m);
-            //     // m->motor_state = MOTOR_STATE_RUNNING;
-            // }
+            if (m->motor_state == MOTOR_STATE_INIT) {
+                motor_clear_err(m);
+                vTaskDelay(pdMS_TO_TICKS(10));
+                motor_enable(m);
+                // m->motor_state = MOTOR_STATE_RUNNING;
+            }
 
-            // if (m->motor_state == MOTOR_STATE_RUNNING && priv->axis_status != 0x08) {
-            //     m->motor_state = MOTOR_STATE_INIT;
-            // }
+            if (m->motor_state == MOTOR_STATE_RUNNING && priv->axis_status != 0x08) {
+                m->motor_state = MOTOR_STATE_INIT;
+            }
 
-            // if (m->motor_state == MOTOR_STATE_RUNNING) {
-            //     // (void)motor_send_mit;   // 简直就是一坨
-            //     // motor_send_mit_cmd(m);  // 无法直接设置Kp Ki Kd值，但是可以正常使用
-            //     motor_send_mit(m);
-            // }
-            // if (m->motor_state == MOTOR_STATE_RUNNING && priv->axis_status != 0x08) {
-            //     m->motor_state = MOTOR_STATE_INIT;
-            // }
+            if (m->motor_state == MOTOR_STATE_RUNNING) {
+                // (void)motor_send_mit;   // 简直就是一坨
+                // motor_send_mit_cmd(m);  // 无法直接设置Kp Ki Kd值，但是可以正常使用
+                motor_send_mit(m);
+            }
+            if (m->motor_state == MOTOR_STATE_RUNNING && priv->axis_status != 0x08) {
+                m->motor_state = MOTOR_STATE_INIT;
+            }
 
-            // switch (m->motor_state) {
-            // case MOTOR_STATE_INIT:
-            //     motor_clear_err(m);
-            //     vTaskDelay(10);
-            //     motor_enable(m);
-            //     break;
+            switch (m->motor_state) {
+            case MOTOR_STATE_INIT:
+                motor_clear_err(m);
+                vTaskDelay(10);
+                motor_enable(m);
+                break;
 
-            // default:
-            //     break;
-            // }
+            default:
+                break;
+            }
 
             if (m->motor_state != MOTOR_STATE_DISABLE) {
                 motor_send_mit(m);
@@ -298,15 +298,5 @@ void Odrive_Init() {
     xTaskCreate(odrive_mainLoop, "OdriveMotor", 256, NULL, 240, NULL);
 }
 
-void Odrive_DeInit() {
-    Odrive_CAN_ConfigTypedef config = {
-        .motor_id =1,
-        .can_rx_topic_name = "/CAN1/RX",
-        .can_tx_topic_name = "/CAN1/TX",
-        .kp = 0.01f,
-        .kd = 0.001f,
-        .motor_name = "test_motor"};
-     Odrive_Register(&config);
-    Odrive_Init();
-}
+
 

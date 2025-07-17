@@ -112,7 +112,8 @@ static const uint8_t m_ryssdnr[] = {
     ST, 250, 0xff};
 
 static const uint8_t m_bad_apple[] = {
-    SO_X_, 40, LA_X_, 40, DO, 20, RE, 40, SO_X_, 20, XI_, 40, LA_, 40, LA_, 40, XI_, 40, XI_, 40, LA_, 40, LA_, 40, LA_, 40, SO_, 40, SO_X_, 40, LA_X_, 40, DO, 20, RE, 40, SO_X_, 20, XI_, 40, LA_, 40, LA_, 40, XI_, 40, XI_, 40, LA_, 20, XI_, 20, RE, 40, DO, 40, DO, 20, DO, 40, RE_X, 40, XI_, 40, XI_, 40, XI_, 40, LA_, 40, SO_X_, 20, SO_X_, 40, LA_X_, 40, DO, 40, DO, 40, RE, 40, DO, 40, DO, 20, DO, 40, RE_X, 40, XI_, 40, RE_X, 40, MI, 40, RE_X, 40, DO, 20, DO, 40, LA_X_, 40, SO_, 40, DO, 40,
+    DO, 20, RE, 20, MI, 20, FA, 20, SO, 20, LA, 20, XI, 40,
+    XI, 20, LA, 20, SO, 20, FA, 20, MI, 20, RE, 20, DO, 60,
     0xFF};
 
 const Music_PWM_t pwm_musics[] = {

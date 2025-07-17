@@ -288,8 +288,9 @@ void BSP_SPI_RX_DMA_CB() {
  */
 void INS_task(void const *pvParameters) {
     // wait a time
-    osDelay(INS_TASK_INIT_TIME);
+    osDelay(7);
     while (BMI088_init()) {
+
         osDelay(100);
     }
 
@@ -390,6 +391,9 @@ void INS_task(void const *pvParameters) {
             INS_SUM_angle_N[i] = -INS_SUM_angle[i];
             _Last_INS_angle[i] = INS_angle[i];
         }
+        //vTaskDelay(1);
+
+
     }
 }
 
@@ -480,5 +484,5 @@ void BSP_bmi088_Init() {
 
     // osThreadDef(imuTask, INS_task, osPriorityRealtime, 0, 1024);
     // imuTaskHandle = osThreadCreate(osThread(imuTask), NULL);
-    xTaskCreate((void (*)(void *))INS_task, "IMU", 256, NULL, 1, (TaskHandle_t *const)&imuTaskHandle);
+    xTaskCreate((void (*)(void *))INS_task, "IMU", 512, NULL, 240,NULL);
 }

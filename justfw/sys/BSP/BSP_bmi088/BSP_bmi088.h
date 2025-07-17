@@ -132,5 +132,7 @@ extern const float *get_accel_data_point(void);
  * @retval         INS_mag的指针
  */
 extern const float *get_mag_data_point(void);
+extern float INS_angle[3];  // euler angle, unit rad.欧拉角 单位 rad
+
 
 #endif  // JUSTFW_BSP_BMI088_CONFIG_H
