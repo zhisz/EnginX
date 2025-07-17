@@ -117,12 +117,13 @@ void Max_Calibrate(INTF_Motor_HandleTypeDef* motor) {
 bool IsMotorCalibrated = 0;
 
 
-void CalibrateMotor(INTF_Motor_HandleTypeDef* motor, float desired_angle)
+void CalibrateMotor(INTF_Motor_HandleTypeDef* motor, float desired_angle, int calibrate_count)
 {
-       bool is_calibrated = false; // 默认是未校准
+    bool is_calibrated = false; // 默认是未校准
 
 
-        for (int a=0;a<=3;a++)
+
+        for (int a=0;a<=calibrate_count;a++)
         {
             Max_Calibrate(motor);
             Min_Calibrate(motor);
@@ -141,9 +142,9 @@ void CalibrateMotor(INTF_Motor_HandleTypeDef* motor, float desired_angle)
 
 void subarms_MainLoop()
 {
-    CalibrateMotor(SubArm1_WristMotor,0.0f);
-    CalibrateMotor(SubArm1_PitchMotor,1.01f);
-    CalibrateMotor(SubArm1_ExtendMotor,0.0f);
+    CalibrateMotor(SubArm1_WristMotor,0.0f,4);
+    CalibrateMotor(SubArm1_PitchMotor,1.01f,0);
+    CalibrateMotor(SubArm1_ExtendMotor,0.0f,0);
 
 
     while (1)
