@@ -38,6 +38,8 @@ typedef struct INTF_Motor_Handle {
     float real_angle;                     // 单位rad
     float target_torque;                  // 单位N*m
     float real_torque;                    // 单位N*m
+    float min_angle;                      // 最小角度，单位rad
+    float max_angle;                      // 最大角度，单位rad
     uint32_t update_time;                 // 电机传感器更新时间，单位ms(HAL_GetTick())
 
     float direction;  // 电机方向（电机角度、输出乘以该系数，设置-1反向）

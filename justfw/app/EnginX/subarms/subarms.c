@@ -13,7 +13,8 @@
 #include "c620.h"
 #include "tinybus_intf.h"
 
-float angle_min,angle_max;
+
+
 
 RC_ctrl_t *subarms_rc_ctrl;
 
@@ -29,12 +30,88 @@ INTF_Motor_HandleTypeDef *SubArm2_ExtendMotor;
 
 INTF_Motor_HandleTypeDef *lift_motor;
 
-
-
 extern  int g_dr16_is_connected;
 
-void Min_Calibrate(INTF_Motor_HandleTypeDef* motor) {
-    const float CALIBRATE_SPEED = 5.0f;         // 每次移动多少角度
+
+
+#define DEADZONE 50
+#define DELTA_ANGLE 1.0f  // 每次调整的角度
+
+void SubArm_RC_Control(void)
+{
+    // 读取摇杆值
+    int pitch_input  = subarms_rc_ctrl[0].rc.rocker_l1;  // 左Y
+    int wrist_input  = subarms_rc_ctrl[0].rc.rocker_r_;   // 右X
+    int extend_input = subarms_rc_ctrl[0].rc.rocker_r1;  // 右Y
+    float ratio_pitch,ratio_wrist,ratio_extend;
+
+    // 控制 PitchMotor
+    if (pitch_input > DEADZONE && SubArm1_PitchMotor->target_angle < SubArm1_PitchMotor->max_angle) {//死区限制＋最大值限制
+        SubArm1_PitchMotor->target_angle += DELTA_ANGLE;                                             //角度++，Δ_angle决定速度
+    } else if (pitch_input < -DEADZONE && SubArm1_PitchMotor->target_angle > SubArm1_PitchMotor->min_angle) {
+        SubArm1_PitchMotor->target_angle -= DELTA_ANGLE;
+    }
+
+    // 控制 WristMotor
+    if (wrist_input > DEADZONE && SubArm1_WristMotor->target_angle < SubArm1_WristMotor->max_angle) {
+        SubArm1_WristMotor->target_angle += DELTA_ANGLE;
+    } else if (wrist_input < -DEADZONE && SubArm1_WristMotor->target_angle > SubArm1_WristMotor->min_angle) {
+        SubArm1_WristMotor->target_angle -= DELTA_ANGLE;
+    }
+
+    // 控制 ExtendMotor
+    if (extend_input > DEADZONE && SubArm1_ExtendMotor->target_angle < SubArm1_ExtendMotor->max_angle) {
+        SubArm1_ExtendMotor->target_angle += DELTA_ANGLE;
+    } else if (extend_input < -DEADZONE && SubArm1_ExtendMotor->target_angle > SubArm1_ExtendMotor->min_angle) {
+        SubArm1_ExtendMotor->target_angle -= DELTA_ANGLE;
+    }
+
+    // 如果你有调试串口，可以加入这段打印看角度
+
+    ratio_pitch = (SubArm1_PitchMotor->real_angle - (SubArm1_PitchMotor->max_angle+SubArm1_PitchMotor->min_angle)/2)*2/(SubArm1_PitchMotor->max_angle - SubArm1_PitchMotor->min_angle);
+    printf("ratio_pitch:%f",ratio_pitch);
+    ratio_extend = (SubArm1_ExtendMotor->real_angle - (SubArm1_ExtendMotor->max_angle+SubArm1_ExtendMotor->min_angle)/2)*2/(SubArm1_ExtendMotor->max_angle - SubArm1_ExtendMotor->min_angle);
+    printf("ratio_extend:%f",ratio_extend);
+    ratio_wrist = (SubArm1_WristMotor->real_angle - (SubArm1_WristMotor->max_angle+SubArm1_WristMotor->min_angle)/2)*2/(SubArm1_WristMotor->max_angle - SubArm1_WristMotor->min_angle);
+    printf("ratio_wrist:%f",ratio_wrist);
+}
+
+
+void Move(INTF_Motor_HandleTypeDef * motor, float position_ratio, float move_speed) {
+    const float ANGLE_THRESHOLD = 1.0f;   // 判断到达目标角度的容差
+    const int MOVE_DELAY = 30;            // 延时周期 (ms)
+
+    // 安全范围限制：-1.0 ~ 1.0
+    if (position_ratio > 1.0f) position_ratio = 1.0f;
+    if (position_ratio < -1.0f) position_ratio = -1.0f;
+
+    // 根据比例计算目标角度
+    float target_angle = motor->min_angle + (position_ratio + 1.0f) / 2.0f * (motor->max_angle - motor->min_angle);
+
+    while (fabs(motor->real_angle - target_angle) > ANGLE_THRESHOLD) {
+        if (motor->real_angle < target_angle) {
+            motor->target_angle += move_speed;
+            if (motor->target_angle > target_angle) {
+                motor->target_angle = target_angle;
+            }
+        } else {
+            motor->target_angle -= move_speed;
+            if (motor->target_angle < target_angle) {
+                motor->target_angle = target_angle;
+            }
+        }
+
+        vTaskDelay(MOVE_DELAY);  // 等待一段时间，再判断是否到位
+    }
+
+    // 最后确保位置精确到达
+    motor->target_angle = target_angle;
+}
+
+
+
+void Min_Calibrate(INTF_Motor_HandleTypeDef* motor, float CALIBRATE_SPEED) {//最小角度自校准
+                                                                            // float CALIBRATE_SPEED 表示每次移动多少角度
     const int CALIBRATE_DELAY = 30;             // 每次延时多少ms
     const int CALIBRATE_TIMEOUT = 10000;        // 最长校准时间
     const float ANGLE_THRESHOLD = 1.0f;         // 判断停止的最小变化量
@@ -59,7 +136,7 @@ void Min_Calibrate(INTF_Motor_HandleTypeDef* motor) {
         }
 
         if (stable_count >= STABLE_COUNT_THRESHOLD) {           // 如果连续稳定次数超过阈值，认为撞到限位
-            angle_min = motor->real_angle;                      // 记录左限位角度
+            motor->min_angle = motor->real_angle;                      // 记录左限位角度
             motor->target_angle = (motor->real_angle + 20.0f);                // 设定目标角度为中间值或指定值
             break;                                              // 撞到限位，退出循环
         }
@@ -72,8 +149,8 @@ void Min_Calibrate(INTF_Motor_HandleTypeDef* motor) {
 
 }
 
-void Max_Calibrate(INTF_Motor_HandleTypeDef* motor) {
-    const float CALIBRATE_SPEED = 5.0f;     // 校准用的慢速（单位看你项目定的）
+void Max_Calibrate(INTF_Motor_HandleTypeDef* motor,float CALIBRATE_SPEED) {//最大角度自校准
+                                                                           // CALIBRATE_SPEED 校准用的速度
     const int CALIBRATE_DELAY = 30;         // 每次运动后的延时(ms)
     const int CALIBRATE_TIMEOUT = 10000;     // 最大校准时间，防死循环(ms)
     const float ANGLE_THRESHOLD = 1.0f;     // 判断是否停止变化的角度阈值
@@ -98,8 +175,8 @@ void Max_Calibrate(INTF_Motor_HandleTypeDef* motor) {
         }
 
         if (stable_count >= STABLE_COUNT_THRESHOLD) {           // 如果连续稳定次数超过阈值，认为撞到限位
-            angle_max = motor->real_angle;                      // 记录右限位角度
-            motor->target_angle = (motor->real_angle - 20.0f);             // 设定目标角度为中间值或指定值
+            motor->max_angle = motor->real_angle;                      // 记录右限位角度
+            motor->target_angle = (motor->real_angle - 20.0f);         // 消除堵转效应，往回拨一定的角度值（实测发现，如果不加这个，会导致校准失败）
             break;                                              // 撞到限位，退出循环
         }
 
@@ -114,27 +191,24 @@ void Max_Calibrate(INTF_Motor_HandleTypeDef* motor) {
 
 }
 
-bool IsMotorCalibrated = 0;
 
-
-void CalibrateMotor(INTF_Motor_HandleTypeDef* motor, float desired_angle, int calibrate_count)
+//*电机名称，
+//*目标角度（映射到-1~1），
+//*校准次数(有的电机因结构问题响应过慢，容易被误判为已经校准到极限角度，所以需要多次校准),
+//*校准速度（每次校准移动多少角度）
+void CalibrateMotor(INTF_Motor_HandleTypeDef* motor, float desired_angle, int calibrate_count,float CALIBRATE_SPEED)
 {
-    bool is_calibrated = false; // 默认是未校准
 
 
 
         for (int a=0;a<=calibrate_count;a++)
         {
-            Max_Calibrate(motor);
-            Min_Calibrate(motor);
+            Max_Calibrate(motor,CALIBRATE_SPEED);
+            Min_Calibrate(motor,CALIBRATE_SPEED);
 
-
-            motor->target_angle= (desired_angle*(angle_max - angle_min)/2.0f + (angle_max + angle_min)/2.0f);        // 设置目标角度为中间值或指定值
         }
-        angle_min = 0.0f;
-        angle_max = 0.0f;        // 重置角度范围
 
-        IsMotorCalibrated =1;
+    motor->target_angle= (desired_angle*(motor->max_angle - motor->min_angle)/2.0f + (motor->max_angle + motor->min_angle)/2.0f);        // 设置目标角度为中间值或指定值
 
 
 }
@@ -142,9 +216,9 @@ void CalibrateMotor(INTF_Motor_HandleTypeDef* motor, float desired_angle, int ca
 
 void subarms_MainLoop()
 {
-    CalibrateMotor(SubArm1_WristMotor,0.0f,4);
-    CalibrateMotor(SubArm1_PitchMotor,1.01f,0);
-    CalibrateMotor(SubArm1_ExtendMotor,0.0f,0);
+    CalibrateMotor(SubArm1_WristMotor,0.0f,4,5.0f);
+    CalibrateMotor(SubArm1_PitchMotor,1.04f,0,2.0f);
+    CalibrateMotor(SubArm1_ExtendMotor,0.0f,0,5.0f);
 
 
     while (1)
@@ -161,58 +235,7 @@ void subarms_MainLoop()
 
         while (subarms_rc_ctrl[0].rc.switch_left==2)
         {
-            // printf("USB_OK");
-            anglex = subarms_rc_ctrl[0].rc.rocker_l_/660.0f*1.5f;
-            angley = subarms_rc_ctrl[0].rc.rocker_r_/660.0f*105.0f;
-            anglez = subarms_rc_ctrl[0].rc.rocker_l1/660.0f*60.0f;
-            anglew = subarms_rc_ctrl[0].rc.rocker_r1/660.0f*180.0f;
-
-
-
-
-            SubArm1_BaseMotor->set_angle(SubArm1_BaseMotor, anglex);
-
-            SubArm1_WristMotor->set_angle(SubArm1_WristMotor,angley);
-
-            if (anglez<0) anglez=0;
-            SubArm1_PitchMotor->set_angle(SubArm1_PitchMotor,anglez);
-
-            if (anglew<0) anglew=0;
-            SubArm1_ExtendMotor->set_angle(SubArm1_ExtendMotor,anglew);
-
-
-
-
-            SubArm2_BaseMotor->set_angle(SubArm2_BaseMotor, anglex-2.3f);
-
-            SubArm2_WristMotor->set_angle(SubArm2_WristMotor,angley);
-
-            if (anglez<0) anglez=0;
-            SubArm2_PitchMotor->set_angle(SubArm2_PitchMotor,anglez);
-
-            if (anglew<0) anglew=0;
-            SubArm2_ExtendMotor->set_angle(SubArm2_ExtendMotor,anglew);
-
-
-            int lift_h = 0;
-            if (subarms_rc_ctrl->rc.switch_right == 2) lift_h = 1;
-            else if (subarms_rc_ctrl->rc.switch_right == 3) lift_h = 5;
-            else if (subarms_rc_ctrl->rc.switch_right == 1) lift_h = 9;;
-
-            lift_motor->set_angle(lift_motor,lift_h);
-
-            extern float INS_angle_N[0];
-
-
-
-
-
-            // printf("angleXYZ:%f,%f,%f\n",INS_angle_N[0],INS_angle_N[1],INS_angle_N[2]);
-            printf("anglex:%f\n",anglex);
-            printf("angley:%f\n",angley);
-            printf("anglez:%f\n",anglez);
-            printf("anglew:%f\n",anglew);
-
+            SubArm_RC_Control();
 
             vTaskDelay(10);
 
@@ -318,15 +341,15 @@ void SubArm1_WristMotor_Init()
 void SubArm1_PitchMotor_Init()
 {
     PID_Init_Config_s angle_pid = {
-        .Kp = 60.0f,
+        .Kp = 100.0f,
         .Ki = 20.0f,
         .Kd = 1.50f,
-        .CoefA = 0.5f,
+        .CoefA = 0.8f,
         .CoefB = 0.5f,
         .MaxOut = 10000.0f,
         .IntegralLimit = 5000.0f,
         .DeadBand = 0.0f,
-        .Improve = PID_Integral_Limit | PID_ChangingIntegrationRate | PID_OutputFilter,
+        .Improve = PID_Integral_Limit | PID_ChangingIntegrationRate// | PID_OutputFilter,
     };
     PID_Init_Config_s speed_pid = {
         .Kp = 0.01f,

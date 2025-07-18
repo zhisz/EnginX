@@ -45,9 +45,9 @@ void chassis_MainLoop()
         while (chassis_rc_ctrl[0].rc.switch_left==1)
         {
             // printf("USB_OK");
-            speed_x = chassis_rc_ctrl[0].rc.rocker_l_ / 660.0f * 1;
-            speed_y = chassis_rc_ctrl[0].rc.rocker_l1 / 660.0f * 1;
-            speed_w = -chassis_rc_ctrl[0].rc.dial / 660.0f * 3 + (chassis_rc_ctrl[0].rc.rocker_r_ / 660.0f * 1);
+            speed_x = chassis_rc_ctrl[0].rc.rocker_l_ / 660.0f * 10;
+            speed_y = chassis_rc_ctrl[0].rc.rocker_l1 / 660.0f * 10;
+            speed_w = -chassis_rc_ctrl[0].rc.dial / 660.0f * 3 + (chassis_rc_ctrl[0].rc.rocker_r_ / 660.0f * 10);
 
             Set_Speed(speed_x, speed_y, speed_w);
 
