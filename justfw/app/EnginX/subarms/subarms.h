@@ -14,8 +14,9 @@
 #ifndef SUBARMS_H
 #define SUBARMS_H
 
-void subarms_Init();
 
+
+void subarms_Init();
 
 
 ///Subarm1_BaseMotor配置
