@@ -80,7 +80,7 @@ void SubArm_RC_Control(void)
 
 ///驱动电机函数，传入电机名，目标角度比例，和移动速度
 void Move(INTF_Motor_HandleTypeDef * motor, float position_ratio, float move_speed) {
-    const float ANGLE_THRESHOLD = 5.0f;   // 判断到达目标角度的容差
+    const float ANGLE_THRESHOLD = 15.0f;   // 判断到达目标角度的容差
     const int MOVE_DELAY = 30;            // 延时周期 (ms)
 
     // 安全范围限制：-1.0 ~ 1.0
@@ -221,12 +221,11 @@ void CalibrateMotor(INTF_Motor_HandleTypeDef* motor, float desired_angle, int ca
 
 void subarms_MainLoop()
 {
-    // CalibrateMotor(SubArm2_WristMotor,-1.0f,3,6.0f);
-    // Move(SubArm2_WristMotor,1.00,6.0f);
-    // CalibrateMotor(SubArm2_PitchMotor,-1.00f,0,2.0f);
-    // CalibrateMotor(SubArm2_ExtendMotor,0.0f,0,6.0f);
-    // Move(SubArm2_ExtendMotor,0.6454f,6.0f);
-    // Move(SubArm2_PitchMotor,-0.501f,2.0f);
+    CalibrateMotor(SubArm1_WristMotor,-1.0f,4,6.0f);
+    CalibrateMotor(SubArm1_PitchMotor,1.00f,0,2.0f);
+    CalibrateMotor(SubArm1_ExtendMotor,0.0f,0,6.0f);
+    Move(SubArm1_ExtendMotor,0.6454f,6.0f);
+    Move(SubArm1_PitchMotor,-0.501f,2.0f);
 
 
     while (1)
@@ -238,14 +237,14 @@ void subarms_MainLoop()
                 subarms_rc_ctrl[0].rc.rocker_r1 <= -600 && subarms_rc_ctrl[0].rc.rocker_r_ >= 600)
             {
 
-                Move(SubArm2_ExtendMotor,1.1500f,2.0f); // 向下伸展,吸取矿石
+                Move(SubArm1_ExtendMotor,1.1500f,2.0f); // 向下伸展,吸取矿石
                 vTaskDelay(40);
-                Move(SubArm2_ExtendMotor,0.500f,4.0f);// 向上收回，升起矿石
-                Move(SubArm2_PitchMotor,-0.188f,0.5f); // 向上微微抬起
-                Move(SubArm2_ExtendMotor,-0.114f,4.0f); // 向后收回
-                Move(SubArm2_WristMotor,0.128f,2.0f); // 转动
-                Move(SubArm2_PitchMotor,-0.558f,4.0f);
-                Move(SubArm2_WristMotor,1.008f,2.0f);
+                Move(SubArm1_ExtendMotor,0.500f,4.0f);// 向上收回，升起矿石
+                Move(SubArm1_PitchMotor,-0.188f,0.5f); // 向上微微抬起
+                Move(SubArm1_ExtendMotor,-0.114f,4.0f); // 向后收回
+                Move(SubArm1_WristMotor,0.128f,2.0f); // 转动
+                Move(SubArm1_PitchMotor,-0.558f,4.0f);
+                Move(SubArm1_WristMotor,1.008f,2.0f);
 
                 vTaskDelay(10);
             }
@@ -256,10 +255,10 @@ void subarms_MainLoop()
         {
             SubArm_RC_Control();
 
-            if (subarms_rc_ctrl[0].rc.rocker_l1 >=  50)SubArm2_PitchMotor->target_angle += 2.0f;
-            if (subarms_rc_ctrl[0].rc.rocker_l1 <= -50)SubArm2_PitchMotor->target_angle -= 2.0f;
-
-            printf("targetangle:%f\n",SubArm2_PitchMotor->target_angle);
+            // if (subarms_rc_ctrl[0].rc.rocker_l1 >=  50)SubArm2_PitchMotor->target_angle += 2.0f;
+            // if (subarms_rc_ctrl[0].rc.rocker_l1 <= -50)SubArm2_PitchMotor->target_angle -= 2.0f;
+            //
+            // printf("targetangle:%f\n",SubArm2_PitchMotor->target_angle);
             vTaskDelay(10);
 
         }
@@ -297,14 +296,14 @@ void subarms_Init()
 ///
 void subarm1_MotorInit()
 {
-    // SubArm1_BaseMotor_Init();
+    SubArm1_BaseMotor_Init();
     SubArm1_WristMotor_Init();
     SubArm1_PitchMotor_Init();
     SubArm1_ExtendMotor_Init();
 }
 
 void SubArm1_BaseMotor_Init() {
-    Odrive_Init();
+    // Odrive_Init();
     Odrive_CAN_ConfigTypedef config = {
         .motor_id =2,
         .can_rx_topic_name = "/CAN1/RX",
@@ -459,7 +458,7 @@ void SubArm1_ExtendMotor_Init()
 ///
 void subarm2_MotorInit()
 {
-     SubArm2_BaseMotor_Init();
+    SubArm2_BaseMotor_Init();
     SubArm2_WristMotor_Init();
     SubArm2_PitchMotor_Init();
     SubArm2_ExtendMotor_Init();
@@ -534,7 +533,7 @@ void SubArm2_PitchMotor_Init()
         .MaxOut = 10000.0f,
         .IntegralLimit = 5000.0f,
         .DeadBand = 0.0f,
-        .Improve = PID_Integral_Limit | PID_ChangingIntegrationRate | PID_OutputFilter,
+        .Improve = PID_Integral_Limit | PID_ChangingIntegrationRate// | PID_OutputFilter,
     };
     PID_Init_Config_s speed_pid = {
         .Kp = 0.05f,
@@ -555,7 +554,7 @@ void SubArm2_PitchMotor_Init()
         .IntegralLimit = 100.0f,
     };
     C610_ConfigTypeDef config = {
-        .motor_id = 7,
+        .motor_id = 5,
         .motor_ptr_name = "SubArm2_PitchMotor",
         .motor_mode = MOTOR_MODE_ANGLE,
         .direction = -1.0f,
@@ -567,6 +566,7 @@ void SubArm2_PitchMotor_Init()
         .can_tx_topic_name = "/CAN1/TX",
     };
     C610_Register(&config);
+
 }
 
 void SubArm2_ExtendMotor_Init()
@@ -601,7 +601,7 @@ void SubArm2_ExtendMotor_Init()
         .IntegralLimit = 100.0f,
     };
     C610_ConfigTypeDef config = {
-        .motor_id = 8,
+        .motor_id = 6,
         .motor_ptr_name = "SubArm2_ExtendMotor",
         .motor_mode = MOTOR_MODE_ANGLE,
         .direction = -1.0f,

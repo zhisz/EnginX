@@ -40,6 +40,8 @@ void Modules_Init() {
 
     extern void GM_Init();
     GM_Init();
+    Odrive_Init();
+
 
     DR16_Init();
 
