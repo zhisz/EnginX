@@ -6,6 +6,8 @@
 #include "modules_config.h"
 #include "subarms.h"
 
+#define USE_GM_MOTOR_DRIVER
+#define USE_DM_MOTOR_DRIVER
 
 void Modules_Init() {
     __disable_irq();
@@ -38,9 +40,7 @@ void Modules_Init() {
 
     MotorManager_Init();
 
-    extern void GM_Init();
-    GM_Init();
-    Odrive_Init();
+    // Odrive_Init();
 
 
     DR16_Init();
@@ -50,7 +50,7 @@ void Modules_Init() {
     // DM_Motor_DeInit();
 
     subarms_Init();
-    chassis_Init();
+    // chassis_Init();
 
     // Test_Init();
 
