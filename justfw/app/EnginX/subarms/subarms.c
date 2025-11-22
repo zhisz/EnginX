@@ -16,58 +16,16 @@
 
 RC_ctrl_t *subarms_rc_ctrl;
 
-// INTF_Motor_HandleTypeDef *SubArm1_BaseMotor;
-INTF_Motor_HandleTypeDef *SubArm1_WristMotor;
-// INTF_Motor_HandleTypeDef *SubArm1_PitchMotor;
-// INTF_Motor_HandleTypeDef *SubArm1_ExtendMotor;
-
-// INTF_Motor_HandleTypeDef *SubArm2_BaseMotor;
-// INTF_Motor_HandleTypeDef *SubArm2_WristMotor;
-// INTF_Motor_HandleTypeDef *SubArm2_PitchMotor;
-// INTF_Motor_HandleTypeDef *SubArm2_ExtendMotor;
-
-// INTF_Motor_HandleTypeDef *lift_motor;
-
-extern  int g_dr16_is_connected;
-
-
-///遥控调试小臂角度，该函数主要用于调试，通过遥控是小臂处于特定状态，在打印出关键信息（angle_ratio），缩短调试时间
-#define DEADZONE 50         // 摇杆死区
-#define DELTA_ANGLE 1.0f    // 每次调整的角度
-void SubArm_RC_Control(void)
-{
-    // 读取摇杆值
-    float basic_input = subarms_rc_ctrl[0].rc.rocker_l_;  // 左X
-    int pitch_input  = subarms_rc_ctrl[0].rc.rocker_l1;  // 左Y
-    int wrist_input  = subarms_rc_ctrl[0].rc.rocker_r_;   // 右X
-    int extend_input = subarms_rc_ctrl[0].rc.rocker_r1;  // 右Y
-    float ratio_pitch,ratio_wrist,ratio_extend;
-
-
-    // 控制 WristMotor
-    if (wrist_input > DEADZONE && SubArm1_WristMotor->target_angle < SubArm1_WristMotor->max_angle) {
-        SubArm1_WristMotor->target_angle += DELTA_ANGLE;
-    } else if (wrist_input < -DEADZONE && SubArm1_WristMotor->target_angle > SubArm1_WristMotor->min_angle) {
-        SubArm1_WristMotor->target_angle -= DELTA_ANGLE;
-    }
-    vTaskDelay(10);
-
-}
-
-
+INTF_Motor_HandleTypeDef *master;
 
 void subarms_MainLoop()
 {
-    // CalibrateMotor(SubArm2_WristMotor,-1.0f,0,6.0f);
-    // CalibrateMotor(SubArm2_PitchMotor,-0.98f,0,2.0f);
-    // CalibrateMotor(SubArm2_ExtendMotor,0.0f,0,6.0f);
-    // Move(SubArm2_ExtendMotor,0.6454f,6.0f,15.0f);
-    // Move(SubArm2_PitchMotor,0.501f,2.0f,15.0f);
 
-
+    vTaskDelay(10);
     while (1)
     {
-        SubArm1_WristMotor->target_speed=10;
+        vTaskDelay(100);
+        master->target_angle=0.0f;
 
     }
 }
@@ -76,9 +34,11 @@ void subarms_Init()
 {
 
 
-    subarm1_MotorInit();
+    vTaskDelay(10);
+    // subarm1_MotorInit();
     // SubArm1_BaseMotor = pvSharePtr("SubArm1_BaseMotor", sizeof(INTF_Motor_HandleTypeDef));
-    SubArm1_WristMotor = pvSharePtr("SubArm1_WristMotor", sizeof(INTF_Motor_HandleTypeDef));
+    master = pvSharePtr("master", sizeof(INTF_Motor_HandleTypeDef));
+
     // SubArm1_PitchMotor = pvSharePtr("SubArm1_PitchMotor", sizeof(INTF_Motor_HandleTypeDef));
     // SubArm1_ExtendMotor = pvSharePtr("SubArm1_ExtendMotor", sizeof(INTF_Motor_HandleTypeDef));
 
@@ -104,7 +64,7 @@ void subarms_Init()
 void subarm1_MotorInit()
 {
     // SubArm1_BaseMotor_Init();
-    SubArm1_WristMotor_Init();
+    // SubArm1_WristMotor_Init();
     // SubArm1_PitchMotor_Init();
     // SubArm1_ExtendMotor_Init();
 }
@@ -153,9 +113,9 @@ void SubArm1_WristMotor_Init()
         .IntegralLimit = 100.0f,
     };
     C610_ConfigTypeDef config = {
-        .motor_id = 1,
+        .motor_id = 2,
         .motor_ptr_name = "SubArm1_WristMotor",
-        .motor_mode = MOTOR_MODE_SPEED,
+        .motor_mode = MOTOR_MODE_ANGLE,
         .direction = 1.0f,
         .torque_feed_forward = C610_Torque2Current(1.0f), // 未测试
         .angle_pid_config = &angle_pid,
