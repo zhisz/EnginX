@@ -17,6 +17,8 @@
 RC_ctrl_t *subarms_rc_ctrl;
 
 INTF_Motor_HandleTypeDef *master;
+INTF_Motor_HandleTypeDef *slave;
+
 
 void subarms_MainLoop()
 {
@@ -25,7 +27,11 @@ void subarms_MainLoop()
     while (1)
     {
         vTaskDelay(100);
-        master->target_angle=0.0f;
+        master->target_angle=(slave->real_angle);
+        slave->target_angle = (master->real_angle);
+
+
+
 
     }
 }
@@ -38,6 +44,7 @@ void subarms_Init()
     // subarm1_MotorInit();
     // SubArm1_BaseMotor = pvSharePtr("SubArm1_BaseMotor", sizeof(INTF_Motor_HandleTypeDef));
     master = pvSharePtr("master", sizeof(INTF_Motor_HandleTypeDef));
+    slave = pvSharePtr("slave", sizeof(INTF_Motor_HandleTypeDef));
 
     // SubArm1_PitchMotor = pvSharePtr("SubArm1_PitchMotor", sizeof(INTF_Motor_HandleTypeDef));
     // SubArm1_ExtendMotor = pvSharePtr("SubArm1_ExtendMotor", sizeof(INTF_Motor_HandleTypeDef));

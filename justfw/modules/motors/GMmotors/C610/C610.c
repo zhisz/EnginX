@@ -298,34 +298,35 @@ INTF_Motor_HandleTypeDef *C610_Register(C610_ConfigTypeDef *config) {
     return motor;
 }
 void C610_Init() {
+
     PID_Init_Config_s angle_pid = {
-        .Kp = 300.0f,
+        .Kp = 240.0f,      // 从 300 改到 30，先温柔一点
         .Ki = 0.0f,
-        .Kd = 0.00f,
-        .CoefA = 0.5f,
-        .CoefB = 0.5f,
-        .MaxOut = 10000.0f,
-        .IntegralLimit = 5000.0f,
-        .DeadBand = 0.0f,
-        .Improve = PID_Integral_Limit | PID_ChangingIntegrationRate | PID_OutputFilter,
+        .Kd = 0.0f,       // 先关掉 D
+        .CoefA = 0.7f,    // 输出滤波更偏“平滑”
+        .CoefB = 0.3f,
+        .MaxOut = 3000.0f,
+        .IntegralLimit = 0.0f,
+        .DeadBand = 0.002f,  // 小死区，避免来回抖
+        .Improve = PID_OutputFilter,
     };
     PID_Init_Config_s speed_pid = {
-        .Kp = 1.0f,
-        .Ki = 0.0f,
-        .Kd = 0.011f,
-        .MaxOut = 12.0f,
+        .Kp = 0.80f,
+        .Ki = 0.001f,
+        .Kd = 0.050f,
+        .MaxOut = 6000.0f,
         .DeadBand = 0.0f,
-        .IntegralLimit = 6.0f,
+        .IntegralLimit = 0.0f,
         .Improve = PID_Integral_Limit| PID_OutputFilter,
     };
     PID_Init_Config_s torque_pid = {
-        .Kp = 30000.0f,
+        .Kp = 4.0f,
         .Ki = 000.0f,
-        .Kd = 0.000001f,
+        .Kd = 0.00000f,
         .MaxOut = C610_CURRENT_MAX,
         .DeadBand = 0.0f,
         .Improve = PID_Integral_Limit,
-        .IntegralLimit = 100.0f,
+        .IntegralLimit = 0.0f,
     };
     C610_ConfigTypeDef config = {
         .motor_id = 2,
@@ -340,4 +341,52 @@ void C610_Init() {
         .can_tx_topic_name = "/CAN1/TX",
     };
     C610_Register(&config);
+
+
+    PID_Init_Config_s angle_pid1 = {
+        .Kp = 240.0f,      // 从 300 改到 30，先温柔一点
+        .Ki = 0.0f,
+        .Kd = 0.0f,       // 先关掉 D
+        .CoefA = 0.7f,    // 输出滤波更偏“平滑”
+        .CoefB = 0.3f,
+        .MaxOut = 3000.0f,
+        .IntegralLimit = 0.0f,
+        .DeadBand = 0.002f,  // 小死区，避免来回抖
+        .Improve = PID_OutputFilter,
+    };
+    PID_Init_Config_s speed_pid1 = {
+        .Kp = 0.80f,
+        .Ki = 0.001f,
+        .Kd = 0.050f,
+        .MaxOut = 6000.0f,
+        .DeadBand = 0.0f,
+        .IntegralLimit = 0.0f,
+        .Improve = PID_Integral_Limit| PID_OutputFilter,
+    };
+    PID_Init_Config_s torque_pid1 = {
+        .Kp = 8.0f,
+        .Ki = 2.0f,
+        .Kd = 0.00000f,
+        .MaxOut = C610_CURRENT_MAX,
+        .DeadBand = 0.0f,
+        .Improve = PID_Integral_Limit,
+        .IntegralLimit = 0.0f,
+    };
+    C610_ConfigTypeDef config1 = {
+        .motor_id = 1,
+        .motor_ptr_name = "slave",
+        .motor_mode = MOTOR_MODE_ANGLE,
+        .direction = -1.0f,
+        .torque_feed_forward = C610_Torque2Current(1.0f), // 未测试
+        .angle_pid_config = &angle_pid1,
+        .speed_pid_config = &speed_pid1,
+        .torque_pid_config = &torque_pid1,
+        .can_rx_topic_name = "/CAN1/RX",
+        .can_tx_topic_name = "/CAN1/TX",
+    };
+    C610_Register(&config1);
+
+
+
+
 }
