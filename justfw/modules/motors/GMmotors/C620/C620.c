@@ -301,6 +301,51 @@ INTF_Motor_HandleTypeDef *C620_Register(C620_ConfigTypeDef *config) {
 
 void C620_Init()
 {
+
+
+    PID_Init_Config_s angle_pid = {
+        .Kp = 20.0f,       // 提高比例增益，加快响应速度
+        .Ki = 4.5f,       // 保持积分增益，维持稳态精度
+        .Kd = 0.02f,       // 增大微分增益，抑制抖动
+        .MaxOut = 180.0f,
+        .DeadBand = 0.11f, // 缩小死区，减少小误差下的抖动
+        .Improve = PID_Integral_Limit | PID_OutputFilter,
+        .Output_LPF_RC = 0.5f, // 启用低通滤波
+};
+    PID_Init_Config_s speed_pid = {
+        .Kp=0.2f,
+        .Ki=0.01f,
+        .Kd=0.000f,
+        .MaxOut=6.0f,
+        .DeadBand = 0.0f,
+        .Output_LPF_RC=0.1f,
+        .Improve=PID_Integral_Limit | PID_OutputFilter,
+        .IntegralLimit=1.0f,
+};
+    PID_Init_Config_s torque_pid = {
+        .Kp=1000.0f,
+        .Ki=5000.0f,
+        .Kd=0.0f,
+        .MaxOut=C620_CURRENT_MAX,
+        .DeadBand = 0.0f,
+        .Improve=PID_Integral_Limit,
+        .IntegralLimit= 500.0f,
+};
+    C620_ConfigTypeDef config = {
+        .motor_id=5,
+        .motor_ptr_name="test1",
+        .motor_mode=MOTOR_MODE_ANGLE,
+        .direction=1.0f,
+        .torque_feed_forward = C620_Torque2Current(1.0f),//未测试
+        .angle_pid_config=&angle_pid,
+        .speed_pid_config=&speed_pid,
+        .torque_pid_config=&torque_pid,
+        .can_rx_topic_name="/CAN1/RX",
+        .can_tx_topic_name="/CAN1/TX",
+};
+    C620_Register(&config);
+
+
 //     PID_Init_Config_s angle_pid2 = {
 //         .Kp = 6.0f,       // 提高比例增益，加快响应速度
 //         .Ki = 3.0f,       // 保持积分增益，维持稳态精度

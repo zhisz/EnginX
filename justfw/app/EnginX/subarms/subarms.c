@@ -18,6 +18,7 @@ RC_ctrl_t *subarms_rc_ctrl;
 
 INTF_Motor_HandleTypeDef *master;
 INTF_Motor_HandleTypeDef *slave;
+INTF_Motor_HandleTypeDef *test1;
 
 
 void subarms_MainLoop()
@@ -29,7 +30,9 @@ void subarms_MainLoop()
         vTaskDelay(100);
         master->target_angle=(slave->real_angle);
         slave->target_angle = (master->real_angle);
+        test1->target_angle = 0;
 
+        printf("%f\n", master->target_angle);
 
 
 
@@ -45,6 +48,7 @@ void subarms_Init()
     // SubArm1_BaseMotor = pvSharePtr("SubArm1_BaseMotor", sizeof(INTF_Motor_HandleTypeDef));
     master = pvSharePtr("master", sizeof(INTF_Motor_HandleTypeDef));
     slave = pvSharePtr("slave", sizeof(INTF_Motor_HandleTypeDef));
+    test1 = pvSharePtr("test1", sizeof(INTF_Motor_HandleTypeDef));
 
     // SubArm1_PitchMotor = pvSharePtr("SubArm1_PitchMotor", sizeof(INTF_Motor_HandleTypeDef));
     // SubArm1_ExtendMotor = pvSharePtr("SubArm1_ExtendMotor", sizeof(INTF_Motor_HandleTypeDef));
@@ -56,6 +60,8 @@ void subarms_Init()
     // SubArm2_WristMotor = pvSharePtr("SubArm2_WristMotor", sizeof(INTF_Motor_HandleTypeDef));
     // SubArm2_PitchMotor = pvSharePtr("SubArm2_PitchMotor", sizeof(INTF_Motor_HandleTypeDef));
     // SubArm2_ExtendMotor = pvSharePtr("SubArm2_ExtendMotor", sizeof(INTF_Motor_HandleTypeDef));
+
+    printf("hello world\n");
 
     // LiftMotor_Init();
     // lift_motor = pvSharePtr("lift_motor", sizeof(INTF_Motor_HandleTypeDef));
