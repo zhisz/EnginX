@@ -311,27 +311,27 @@ void C610_Init() {
         .Improve = PID_OutputFilter,
     };
     PID_Init_Config_s speed_pid = {
-        .Kp = 0.80f,
-        .Ki = 0.001f,
-        .Kd = 0.050f,
-        .MaxOut = 6000.0f,
+        .Kp = 0.10f,
+        .Ki = 0.00f,
+        .Kd = 0.00f,
+        .MaxOut = 12.0f,
         .DeadBand = 0.0f,
-        .IntegralLimit = 0.0f,
+        .IntegralLimit = 6.0f,
         .Improve = PID_Integral_Limit| PID_OutputFilter,
     };
     PID_Init_Config_s torque_pid = {
-        .Kp = 4.0f,
-        .Ki = 000.0f,
+        .Kp = 1000.0f,
+        .Ki = 5000.0f,
         .Kd = 0.00000f,
         .MaxOut = C610_CURRENT_MAX,
         .DeadBand = 0.0f,
         .Improve = PID_Integral_Limit,
-        .IntegralLimit = 0.0f,
+        .IntegralLimit = 100.0f,
     };
     C610_ConfigTypeDef config = {
         .motor_id = 2,
         .motor_ptr_name = "master",
-        .motor_mode = MOTOR_MODE_ANGLE,
+        .motor_mode = MOTOR_MODE_SPEED,
         .direction = -1.0f,
         .torque_feed_forward = C610_Torque2Current(1.0f), // 未测试
         .angle_pid_config = &angle_pid,

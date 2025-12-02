@@ -24,15 +24,44 @@ INTF_Motor_HandleTypeDef *test1;
 void subarms_MainLoop()
 {
 
+    float x1,x2,y1,y2,torque,speed,angle;
+
+    float realtorque,realspeed,realangle,targettorque,targetspeed,targetangle;
     vTaskDelay(10);
     while (1)
     {
-        vTaskDelay(100);
-        master->target_angle=(slave->real_angle);
-        slave->target_angle = (master->real_angle);
-        test1->target_angle = 0;
 
-        printf("%f\n", master->target_angle);
+        x1 = subarms_rc_ctrl[0].rc.rocker_l_;
+        y1 = subarms_rc_ctrl[0].rc.rocker_l1;
+        x2 = subarms_rc_ctrl[0].rc.rocker_r_;
+        y2 = subarms_rc_ctrl[0].rc.rocker_r1;
+        // printf("lx:%f\nly:%f\nrx:%f\nry:%f\n",x1,y1,x2,y2);
+
+
+        vTaskDelay(100);
+        realtorque = master->real_torque;
+        realspeed = master->real_speed;
+        realangle = master->real_angle;
+        targettorque = master->target_torque;
+        targetspeed = master->target_speed;
+        targetangle = master->target_angle;
+
+        if (subarms_rc_ctrl[0].rc.rocker_l_ >= 600)
+        {
+            torque +=5;
+        }
+        if (subarms_rc_ctrl[0].rc.rocker_l_ <= -600)
+        {
+            torque -=5;
+        }
+        master->set_speed(master,torque);
+        printf("%f,%f,%f,%f,%f,%f\n",realtorque,realspeed,realangle,targettorque,targetspeed,targetangle);
+        // master->target_angle=(slave->real_angle);
+        // slave->target_angle = (master->real_angle);
+        // test1->target_angle = 0;
+        //
+        // printf("%f\n", master->target_angle);
+
 
 
 
