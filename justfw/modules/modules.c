@@ -49,8 +49,8 @@ void Modules_Init() {
     // extern void DM_Motor_DeInit();
     // DM_Motor_DeInit();
 
-    subarms_Init();
-    // chassis_Init();
+    // subarms_Init();
+    chassis_Init();
 
     // Test_Init();
 
