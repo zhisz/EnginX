@@ -9,6 +9,8 @@
 #include "shared_ptr_intf.h"
 #include "task.h"
 #include "c620.h"
+#include "NRF24L01/NRF24L01.h"
+
 
 // 轮子中心构成的矩形的大小 单位m
 #define Chassis_Width 0.49
@@ -41,12 +43,13 @@ void chassis_MainLoop()
 
     while (1)
     {
+        // NRF24L01_Receive();
 
         while (chassis_rc_ctrl[0].rc.switch_left==1)
         {
             // printf("USB_OK");
-            speed_x = chassis_rc_ctrl[0].rc.rocker_l_ / 660.0f ;
-            speed_y = chassis_rc_ctrl[0].rc.rocker_l1 / 660.0f ;
+            speed_x = -chassis_rc_ctrl[0].rc.rocker_l_ / 660.0f ;
+            speed_y = -chassis_rc_ctrl[0].rc.rocker_l1 / 660.0f ;
             speed_w = -chassis_rc_ctrl[0].rc.dial / 660.0f * 3 + (chassis_rc_ctrl[0].rc.rocker_r_ / 660.0f );
 
             Set_Speed(speed_x, speed_y, speed_w);
@@ -78,6 +81,8 @@ void chassis_Init()
 
 
     ChassisMotors_Init();
+    // NRF24L01_Init(); // 初始化NRF24L01
+
     F_RMotor = pvSharePtr("F_RMotor", sizeof(INTF_Motor_HandleTypeDef));
     F_LMotor = pvSharePtr("F_LMotor", sizeof(INTF_Motor_HandleTypeDef));
     B_RMotor = pvSharePtr("B_RMotor", sizeof(INTF_Motor_HandleTypeDef));
