@@ -304,15 +304,15 @@ void DM_Motor_DeInit()
 {
     DM_Motor_Init();
     DM_Motor_ConfigTypeDef config = {
-        .motor_id = 6,
+        .motor_id = 0x01,
         .can_rx_topic_name = "/CAN1/RX",
         .can_tx_topic_name = "/CAN1/TX",
-        .motor_mode = MOTOR_MODE_SPEED,
+        .motor_mode = MOTOR_MODE_ANGLE,
         .direction = 1,
-        .kp = 0.2,
-        .kd = 0.2,
-        .motor_ptr_name = "test_motor2"
+        .kp = 17,
+        .kd = 3.8,
+        .motor_ptr_name = "J4310"
     };
 
-    // DM_Motor_Register(&config);
+    DM_Motor_Register(&config);
 }

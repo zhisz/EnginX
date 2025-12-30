@@ -46,8 +46,8 @@ void Modules_Init() {
     DR16_Init();
 
 
-    // extern void DM_Motor_DeInit();
-    // DM_Motor_DeInit();
+    extern void DM_Motor_DeInit();
+    DM_Motor_DeInit();
 
     // subarms_Init();
     chassis_Init();

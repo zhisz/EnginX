@@ -43,31 +43,34 @@ void Vision_Com_Solve(void *message, BusTopicHandle_t *topic) {
         }
     }
 }
+
 void AutoAim_Transmit(AutoAim_S2M_PacketTypeDef *aim_msg) {
-    union AutoAim_S2M_Union auto_aim_s2m_union;
-    auto_aim_s2m_union.auto_aim_s2m=*aim_msg;
-    auto_aim_s2m_union.auto_aim_s2m.header=0x5A;
-
-    append_CRC16_check_sum(auto_aim_s2m_union.raw, sizeof(AutoAim_S2M_PacketTypeDef));
-
-    INTF_Serial_MessageTypeDef msg;
-    msg.data = auto_aim_s2m_union.raw;
-    msg.len = sizeof(AutoAim_S2M_PacketTypeDef);
-    vBusPublish(g_autoaim_tx, &msg);
+    // union AutoAim_S2M_Union auto_aim_s2m_union;
+    // auto_aim_s2m_union.auto_aim_s2m=*aim_msg;
+    // auto_aim_s2m_union.auto_aim_s2m.header=0x5A;
+    //
+    // append_CRC16_check_sum(auto_aim_s2m_union.raw, sizeof(AutoAim_S2M_PacketTypeDef));
+    //
+    // INTF_Serial_MessageTypeDef msg;
+    // msg.data = auto_aim_s2m_union.raw;
+    // msg.len = sizeof(AutoAim_S2M_PacketTypeDef);
+    // vBusPublish(g_autoaim_tx, &msg);
 }
 void Vision_Com_slove_loop(){
   while (1){
+
     AutoAim_M2S_PacketTypeDef msg;
     if(xQueueReceive(autoAim_msg_queue,&msg,0)==pdPASS){
       vBusPublish(g_autoaim_rx,&msg);
+
     }
     osDelay(1);
   }
 }
 void Vision_Com_Init(void) {
-  autoAim_msg_queue= xQueueCreate(5,sizeof(AutoAim_M2S_PacketTypeDef));
-    xBusSubscribeFromName("USB_RX", Vision_Com_Solve);
-    g_autoaim_tx = xBusTopicRegister("USB_TX");
+  // autoAim_msg_queue= xQueueCreate(5,sizeof(AutoAim_M2S_PacketTypeDef));
+  //   xBusSubscribeFromName("USB_RX", Vision_Com_Solve);
+  //   // g_autoaim_tx = xBusTopicRegister("USB_TX");
     g_autoaim_rx = xBusTopicRegister("AutoAim_RX");
     xTaskCreate(Vision_Com_slove_loop, "VisionComLoop", 256, NULL, 10, NULL);
 }

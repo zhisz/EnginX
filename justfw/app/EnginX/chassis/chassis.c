@@ -9,8 +9,12 @@
 #include "shared_ptr_intf.h"
 #include "task.h"
 #include "c620.h"
+#include "usart.h"
 #include "NRF24L01/NRF24L01.h"
 
+
+#define RX_BUF_SZ 256
+uint8_t rxbuf[RX_BUF_SZ];
 
 // 轮子中心构成的矩形的大小 单位m
 #define Chassis_Width 0.49
@@ -28,6 +32,7 @@ INTF_Motor_HandleTypeDef *F_RMotor;
 INTF_Motor_HandleTypeDef *F_LMotor;
 INTF_Motor_HandleTypeDef *B_RMotor;
 INTF_Motor_HandleTypeDef *B_LMotor;
+INTF_Motor_HandleTypeDef *J4310;
 
 
 void Set_Speed(float speed_x, float speed_y, float speed_w) {
@@ -37,6 +42,20 @@ void Set_Speed(float speed_x, float speed_y, float speed_w) {
     B_RMotor->set_speed(B_RMotor, ((-speed_x - speed_y + speed_w * (Chassis_Width + Chassis_Length) * 0.5f) * Motor_DECELE_RATIO / WHEEL_R));
 }
 
+
+void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
+{
+    if (huart->Instance == USART1)
+    {
+        // rxbuf[0..Size-1] 是这一帧数据
+        // parse_frame(rxbuf, Size);
+
+        // 重新启动（有的 HAL 会自动续收，但稳妥起见你可以明确重启）
+        HAL_UARTEx_ReceiveToIdle_DMA(&huart1, rxbuf, RX_BUF_SZ);
+        __HAL_DMA_DISABLE_IT(huart1.hdmarx, DMA_IT_HT);
+    }
+}
+
 void chassis_MainLoop()
 {
     float speed_x, speed_y, speed_w;
@@ -44,6 +63,15 @@ void chassis_MainLoop()
     while (1)
     {
         // NRF24L01_Receive();
+        // J4310->set_angle(J4310,0.3);// 启动 DMA 接收 + 空闲中断
+        HAL_UARTEx_ReceiveToIdle_DMA(&huart1, rxbuf, RX_BUF_SZ);
+
+        // 可选：关闭 DMA 半传中断，减少打扰
+        __HAL_DMA_DISABLE_IT(huart1.hdmarx, DMA_IT_HT);
+
+
+        J4310->target_angle = 10*chassis_rc_ctrl[0].rc.rocker_l_ / 660.0f;
+        printf("angle:%f\n",rxbuf);
 
         while (chassis_rc_ctrl[0].rc.switch_left==1)
         {
@@ -87,6 +115,9 @@ void chassis_Init()
     F_LMotor = pvSharePtr("F_LMotor", sizeof(INTF_Motor_HandleTypeDef));
     B_RMotor = pvSharePtr("B_RMotor", sizeof(INTF_Motor_HandleTypeDef));
     B_LMotor = pvSharePtr("B_LMotor", sizeof(INTF_Motor_HandleTypeDef));
+
+    J4310 = pvSharePtr("J4310", sizeof(INTF_Motor_HandleTypeDef));
+
 
 
 
